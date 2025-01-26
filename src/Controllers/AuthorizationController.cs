@@ -1,31 +1,33 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Grpc.Core;
+using gRPCServer.User.Protos;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using static IdentityService.Commons.Constants;
+using static gRPCServer.User.Protos.UserProtoService;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace IdentityService.Controllers;
 
-public class AuthorizationController(
-        IOpenIddictApplicationManager applicationManager,
-        IOpenIddictAuthorizationManager authorizationManager,
-        IOpenIddictTokenManager tokenManager,
-        IOpenIddictScopeManager scopeManager) : ControllerBase
+public class AuthorizationController : ControllerBase
 {
-    #region Inject
+    private readonly AuthOptions _authOptions;
+    private readonly UserProtoServiceClient _userProtoServiceClient;
 
-    private readonly IOpenIddictApplicationManager _applicationManager = applicationManager;
-    private readonly IOpenIddictTokenManager _tokenManager = tokenManager;
-    private readonly IOpenIddictAuthorizationManager _authorizationManager = authorizationManager;
+    public AuthorizationController(IOptions<AuthOptions> authOptions,
+                                   UserProtoServiceClient userProtoServiceClient)
+    {
+        _authOptions = authOptions.Value;
+        _userProtoServiceClient = userProtoServiceClient;
+    }
 
-    #endregion Inject
-
-    [HttpGet("~/connect/authorize")]
-    [HttpPost("~/connect/authorize")]
+    [HttpGet("~/auth/authorize")]
+    [HttpPost("~/auth/authorize")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -37,7 +39,7 @@ public class AuthorizationController(
     }
 
     [HttpPost]
-    [Route("connect/token")]
+    [Route("auth/token")]
     [Consumes("application/x-www-form-urlencoded")]
     [Produces("application/json")]
     public async Task<IActionResult> ConnectToken()
@@ -46,32 +48,38 @@ public class AuthorizationController(
         {
             var request = HttpContext.GetOpenIddictServerRequest() 
                           ?? throw new InvalidOperationException(ErrorConstants.OpenIDRequest);
-
-            var authenticateResult = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            if (authenticateResult.Failure is not null)
-            {
-                var failureMessage = authenticateResult.Failure.Message;
-                var failureException = authenticateResult.Failure.InnerException;
-                return BadRequest(new OpenIddictResponse
-                {
-                    Error = Errors.InvalidRequest,
-                    ErrorDescription = failureMessage + failureException
-                });
-            }
-            else if (authenticateResult.Principal == null)
-            {
-                return BadRequest(new OpenIddictResponse
-                {
-                    Error = Errors.InvalidClient,
-                    ErrorDescription = Errors.AccessDenied
-                });
-            }
-
-            var claimsPrincipal = authenticateResult.Principal;
+            
             if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
             {
+                var authenticateResult = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+                if (authenticateResult.Failure is not null)
+                {
+                    var failureMessage = authenticateResult.Failure.Message;
+                    var failureException = authenticateResult.Failure.InnerException;
+                    return BadRequest(new OpenIddictResponse
+                    {
+                        Error = Errors.InvalidRequest,
+                        ErrorDescription = failureMessage + failureException
+                    });
+                }
+                else if (authenticateResult.Principal == null)
+                {
+                    return BadRequest(new OpenIddictResponse
+                    {
+                        Error = Errors.InvalidClient,
+                        ErrorDescription = Errors.AccessDenied
+                    });
+                }
+                var claimsPrincipal = authenticateResult.Principal;
+
                 return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
+            else if (request.IsPasswordGrantType())
+            {
+                var claimsPrincipal = await CreateClaimsPrincipalAsync(request);
+                return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
             return CreateBadRequestResponse(Errors.UnsupportedGrantType, ErrorConstants.GrantType);
         }
         catch (Exception ex)
@@ -81,7 +89,7 @@ public class AuthorizationController(
     }
 
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
-    [HttpPost("~/connect/logout")]
+    [HttpPost("~/auth/logout")]
     public async Task<IActionResult> LogOut()
     {
         await HttpContext.SignOutAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -114,28 +122,40 @@ public class AuthorizationController(
     }
     private async Task<ClaimsPrincipal> CreateClaimsPrincipalAsync(OpenIddictRequest request)
     {
-        var claimsIdentity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-        var role = (string?)request.GetParameter("role");
-        //claimsIdentity.SetClaim(Claims.Subject, request.Username);
-        claimsIdentity.SetClaim(Claims.Subject, "Subject");
-        claimsIdentity.SetClaim(Claims.Audience, "https://localhost:5001");
-        claimsIdentity.SetClaim(Claims.Name, request.UserCode);
-        claimsIdentity.SetClaim(Claims.Role, role);
-        claimsIdentity.SetClaim(Claims.JwtId, Guid.NewGuid().ToString());
-        claimsIdentity.SetResources(await scopeManager.ListResourcesAsync(claimsIdentity.GetScopes()).ToListAsync());
-        claimsIdentity.SetDestinations(GetDestinations);
-        if (!request.IsRefreshTokenGrantType())
+        try
         {
-            request.Scope = Scopes.OfflineAccess;
-            claimsIdentity.SetScopes(Scopes.OfflineAccess);
+            var loginRequest = new LoginRequest
+            {
+                Username = request.Username,
+                Password = request.Password
+            };
+            var loginResponse = await _userProtoServiceClient.LoginAsync(loginRequest);
+            var claimsIdentity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+
+            claimsIdentity.SetClaim(Claims.Subject, request.ClientId)
+                          .SetClaim(Claims.Audience, loginResponse.UserId)
+                          .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
+                          .SetClaim(Claims.Name, request.UserCode)
+                          .SetClaim(Claims.Role, loginResponse.UserRole)
+                          .SetClaim(Claims.JwtId, Guid.NewGuid().ToString());
+            if (!request.IsRefreshTokenGrantType())
+            {
+                //request.Scope = Scopes.OfflineAccess;
+                claimsIdentity.SetScopes(Scopes.OfflineAccess);
+            }
+            claimsIdentity.SetClaim(Claims.Subject, request.ClientId);
+
+            claimsIdentity.SetDestinations(GetDestinations);
+
+            var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
+
+            return claimsPrincipal;
+        } catch (RpcException ex)
+        {
+            Console.WriteLine($"Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
+            throw new Exception(ex.Message);
         }
-        var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-        claimsPrincipal.SetScopes(request.GetScopes());
-
-        return claimsPrincipal;
     }
-
-
 
     #endregion Private Methods
 }

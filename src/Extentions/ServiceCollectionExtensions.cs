@@ -1,19 +1,29 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Quartz;
 using System.Text;
+using static gRPCServer.User.Protos.UserProtoService;
 
 namespace IdentityService.Extentions;
 
 public static class ServiceCollectionExtensions
 {
-    public static IServiceCollection AddCustomDbContext(this IServiceCollection services, WebApplicationBuilder builder)
+    public static IServiceCollection AddOptionPattern(this IServiceCollection services)
     {
-        var connectString = builder.Configuration.GetConnectionString("AppDbConnection");
-        services.AddDbContext<ApplicationDbContext>(options =>
+        services.AddOptions<AuthOptions>().BindConfiguration(nameof(AuthOptions))
+                                          .ValidateDataAnnotations()
+                                          .ValidateOnStart();
+
+        return services;
+    }
+
+    public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+    {
+        var connectString = configuration.GetConnectionString("AppDbConnection");
+        services.AddDbContext<AuthDbContext>(options =>
         {
-            options.UseNpgsql(connectString, opt => {
+            options.UseNpgsql(connectString, opt =>
+            {
                 opt.EnableRetryOnFailure();
             });
             options.UseOpenIddict();
@@ -29,13 +39,22 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
+    public static IServiceCollection AddGrpcConfiguration(this IServiceCollection services, IConfiguration configuration)
+    {
+        var authOptions = configuration.GetSection(nameof(AuthOptions)).Get<AuthOptions>();
+        services.AddGrpcClient<UserProtoServiceClient>(s => 
+        s.Address = new Uri(authOptions?.UserServiceEndpoint ?? throw new Exception("Missing configure server")));
+
+        return services;
+    }
+
     public static IServiceCollection AddCustomOpenIddict(this IServiceCollection services)
     {
         services.AddOpenIddict()
         .AddCore(options =>
         {
             options.UseEntityFrameworkCore()
-                   .UseDbContext<ApplicationDbContext>();
+                   .UseDbContext<AuthDbContext>();
 
             options.UseQuartz()
                    .SetMinimumAuthorizationLifespan(TimeSpan.FromDays(7))
@@ -44,12 +63,13 @@ public static class ServiceCollectionExtensions
         })
         .AddServer(options =>
         {
-            options.SetTokenEndpointUris("connect/token")
-                   .SetAuthorizationEndpointUris("connect/authorize")
-                   .SetLogoutEndpointUris("connect/logout");
+            options.SetTokenEndpointUris("auth/token")
+                   .SetAuthorizationEndpointUris("auth/authorize")
+                   .SetLogoutEndpointUris("auth/logout");
 
             options.AllowAuthorizationCodeFlow()
                    .AllowRefreshTokenFlow()
+                   .AllowPasswordFlow()
                    .UseReferenceRefreshTokens();
 
             options.SetAccessTokenLifetime(TimeSpan.FromDays(1))

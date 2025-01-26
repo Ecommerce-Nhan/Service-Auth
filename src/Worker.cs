@@ -15,7 +15,7 @@ public class Worker : IHostedService
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
 
-        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var context = scope.ServiceProvider.GetRequiredService<AuthDbContext>();
         await context.Database.EnsureCreatedAsync(cancellationToken);
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
@@ -33,8 +33,13 @@ public class Worker : IHostedService
                 {
                     Permissions.Endpoints.Token,
                     Permissions.Endpoints.Authorization,
+                    Permissions.Endpoints.Revocation,
+
+                    Permissions.GrantTypes.Password,
                     Permissions.GrantTypes.AuthorizationCode,
                     Permissions.GrantTypes.RefreshToken,
+
+                    Permissions.Prefixes.Scope + "api",
                     Permissions.ResponseTypes.Code,
                     Scopes.OfflineAccess
                 },

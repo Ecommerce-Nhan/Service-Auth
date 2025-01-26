@@ -1,24 +1,22 @@
+using Serilog;
 using IdentityService.Extentions;
 
-var builder = WebApplication.CreateBuilder(args);
-
-builder.Services.AddCustomDbContext(builder);
-builder.Services.AddControllers();
-builder.Services.AddSwaggerGen();
-builder.Services.AddCustomOpenIddict();
-builder.Services.AddHttpClient();
-
-var app = builder.Build();
-if (app.Environment.IsDevelopment())
+try
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    var builder = WebApplication.CreateBuilder(args);
+    HostingExtensions.ConfigureSerilog(builder);
+
+    var app = builder
+        .ConfigureServices()
+        .ConfigurePipeline(builder);
+
+    app.Run();
 }
-
-app.UseHttpsRedirection();
-app.UseDeveloperExceptionPage();
-app.UseCors();
-app.MapControllers();
-
-app.Run();
-
+catch (Exception ex)
+{
+    Log.Fatal(ex, "server terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
+}
