@@ -1,5 +1,6 @@
 ﻿using Serilog.Debugging;
 using Serilog;
+using SharedLibrary.Exceptions;
 
 namespace IdentityService.Extentions;
 
@@ -24,6 +25,7 @@ internal static class HostingExtensions
         builder.Services.AddCustomOpenIddict();
         builder.Services.AddCustomDbContext(builder.Configuration);
         builder.Services.AddGrpcConfiguration(builder.Configuration);
+        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
         return builder.Build();
     }
@@ -35,6 +37,7 @@ internal static class HostingExtensions
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        app.UseExceptionHandler("/error");
         app.UseSerilogRequestLogging();
         app.UseDeveloperExceptionPage();
         app.UseRouting();
