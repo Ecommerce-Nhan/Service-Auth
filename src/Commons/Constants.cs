@@ -11,10 +11,10 @@ public class Constants
 
     public static class ClientConstants
     {
-        public const string CreditVision = "credit_vision";
-        public const string CreditVision_ClientId = "credit_vision";
-        public const string CreditVision_ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207";
-        public const string CreditVision_DisplayName = "Credit Vision Web";
+        public const string UserService = nameof(UserService);
+        public const string UserService_ClientId = "user_service";
+        public const string UserService_ClientSecret = "388D45FA-B36B-4988-BA59-B187D329C207";
+        public const string UserService_DisplayName = "User Service API";
     }
 
 }

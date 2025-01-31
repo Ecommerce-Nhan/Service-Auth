@@ -20,14 +20,14 @@ public class Worker : IHostedService
 
         var manager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
 
-        if (await manager.FindByClientIdAsync(ClientConstants.CreditVision_ClientId, cancellationToken) == null)
+        if (await manager.FindByClientIdAsync(ClientConstants.UserService_ClientId, cancellationToken) == null)
         {
             await manager.CreateAsync(new OpenIddictApplicationDescriptor
             {
                 ApplicationType = ApplicationTypes.Web,
-                ClientId = ClientConstants.CreditVision_ClientId,
-                ClientSecret = ClientConstants.CreditVision_ClientSecret,
-                DisplayName = ClientConstants.CreditVision_DisplayName,
+                ClientId = ClientConstants.UserService_ClientId,
+                ClientSecret = ClientConstants.UserService_ClientSecret,
+                DisplayName = ClientConstants.UserService_DisplayName,
                 RedirectUris = { new Uri("https://localhost:7033") },
                 Permissions =
                 {
@@ -39,7 +39,7 @@ public class Worker : IHostedService
                     Permissions.GrantTypes.AuthorizationCode,
                     Permissions.GrantTypes.RefreshToken,
 
-                    Permissions.Prefixes.Scope + "api",
+                    Permissions.Prefixes.Scope + "api.user",
                     Permissions.ResponseTypes.Code,
                     Scopes.OfflineAccess
                 },

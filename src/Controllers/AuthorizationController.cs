@@ -18,12 +18,15 @@ public class AuthorizationController : ControllerBase
 {
     private readonly AuthOptions _authOptions;
     private readonly UserProtoServiceClient _userProtoServiceClient;
+    private readonly IOpenIddictTokenManager _tokenManager;
 
     public AuthorizationController(IOptions<AuthOptions> authOptions,
-                                   UserProtoServiceClient userProtoServiceClient)
+                                   UserProtoServiceClient userProtoServiceClient,
+                                   IOpenIddictTokenManager tokenManager)
     {
         _authOptions = authOptions.Value;
         _userProtoServiceClient = userProtoServiceClient;
+        _tokenManager = tokenManager;
     }
 
     [HttpGet("~/auth/authorize")]
@@ -46,9 +49,9 @@ public class AuthorizationController : ControllerBase
     {
         try
         {
-            var request = HttpContext.GetOpenIddictServerRequest() 
+            var request = HttpContext.GetOpenIddictServerRequest()
                           ?? throw new InvalidOperationException(ErrorConstants.OpenIDRequest);
-            
+
             if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
             {
                 var authenticateResult = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -70,6 +73,7 @@ public class AuthorizationController : ControllerBase
                         ErrorDescription = Errors.AccessDenied
                     });
                 }
+               
                 var claimsPrincipal = authenticateResult.Principal;
 
                 return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -77,6 +81,7 @@ public class AuthorizationController : ControllerBase
             else if (request.IsPasswordGrantType())
             {
                 var claimsPrincipal = await CreateClaimsPrincipalAsync(request);
+
                 return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
@@ -135,16 +140,13 @@ public class AuthorizationController : ControllerBase
             claimsIdentity.SetClaim(Claims.Subject, request.ClientId)
                           .SetClaim(Claims.Audience, loginResponse.UserId)
                           .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
-                          .SetClaim(Claims.Name, request.UserCode)
-                          .SetClaim(Claims.Role, loginResponse.UserRole)
-                          .SetClaim(Claims.JwtId, Guid.NewGuid().ToString());
+                          .SetClaim(Claims.Name, request.Username)
+                          .SetClaim(Claims.Role, loginResponse.UserRole);
             if (!request.IsRefreshTokenGrantType())
             {
-                //request.Scope = Scopes.OfflineAccess;
                 claimsIdentity.SetScopes(Scopes.OfflineAccess);
             }
             claimsIdentity.SetClaim(Claims.Subject, request.ClientId);
-
             claimsIdentity.SetDestinations(GetDestinations);
 
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
@@ -155,6 +157,17 @@ public class AuthorizationController : ControllerBase
             Console.WriteLine($"Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
             throw new Exception(ex.Message);
         }
+    }
+    private void SetRefreshTokenInCookie(string refreshToken)
+    {
+        var cookieOptions = new CookieOptions
+        {
+            HttpOnly = true,
+            Expires = DateTime.UtcNow.AddDays(10),
+            SameSite = SameSiteMode.Strict,
+            Secure = true
+        };
+        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
 
     #endregion Private Methods

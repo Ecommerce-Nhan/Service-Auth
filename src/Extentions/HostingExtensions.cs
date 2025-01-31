@@ -1,6 +1,8 @@
 ﻿using Serilog.Debugging;
 using Serilog;
 using SharedLibrary.Exceptions;
+using Microsoft.AspNetCore.Authentication;
+using OpenIddict.Server.AspNetCore;
 
 namespace IdentityService.Extentions;
 
