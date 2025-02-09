@@ -4,10 +4,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+	<NoDefaultLaunchSettings>true</NoDefaultLaunchSettings>
+	<UserSecretsId>s</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Protos\users.proto" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ApplicationDefinition Include="Properties\launchSettings.json" />
   </ItemGroup>
 
 	<ItemGroup>
