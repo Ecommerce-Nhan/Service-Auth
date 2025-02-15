@@ -86,7 +86,8 @@ public static class ServiceCollectionExtensions
             options.UseAspNetCore()
                    .EnableLogoutEndpointPassthrough()
                    .EnableTokenEndpointPassthrough()
-                   .EnableAuthorizationEndpointPassthrough();
+                   .EnableAuthorizationEndpointPassthrough()
+                   .DisableTransportSecurityRequirement();
 
         })
         .AddValidation(options =>

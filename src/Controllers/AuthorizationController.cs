@@ -137,8 +137,8 @@ public class AuthorizationController : ControllerBase
             var loginResponse = await _userProtoServiceClient.LoginAsync(loginRequest);
             var claimsIdentity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
-            claimsIdentity.SetClaim(Claims.Subject, request.ClientId)
-                          .SetClaim(Claims.Audience, loginResponse.UserId)
+            claimsIdentity.SetClaim(Claims.Subject, loginResponse.UserId)
+                          .SetClaim(Claims.Audience, request.ClientId)
                           .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
                           .SetClaim(Claims.Name, request.Username)
                           .SetClaim(Claims.Role, loginResponse.UserRole);

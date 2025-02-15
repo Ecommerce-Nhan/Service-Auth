@@ -1,8 +1,8 @@
 ﻿using Serilog.Debugging;
 using Serilog;
-using SharedLibrary.Exceptions;
 using Microsoft.AspNetCore.Authentication;
 using OpenIddict.Server.AspNetCore;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 namespace IdentityService.Extentions;
 
@@ -27,17 +27,20 @@ internal static class HostingExtensions
         builder.Services.AddCustomOpenIddict();
         builder.Services.AddCustomDbContext(builder.Configuration);
         builder.Services.AddGrpcConfiguration(builder.Configuration);
-        builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
         return builder.Build();
     }
 
     public static WebApplication ConfigurePipeline(this WebApplication app, WebApplicationBuilder builder)
     {
-        if (app.Environment.IsDevelopment())
+        if (!app.Environment.IsProduction())
         {
             app.UseSwagger();
             app.UseSwaggerUI();
+        }
+        if (app.Environment.IsProduction())
+        {
+            app.UseHttpsRedirection();
         }
         app.UseExceptionHandler("/error");
         app.UseSerilogRequestLogging();
@@ -45,7 +48,6 @@ internal static class HostingExtensions
         app.UseRouting();
         app.UseAuthentication();
         app.UseAuthorization();
-        app.UseHttpsRedirection();
         app.UseCors();
         app.MapControllers();
 
