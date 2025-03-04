@@ -67,6 +67,7 @@ public static class ServiceCollectionExtensions
                    .SetAuthorizationEndpointUris("auth/authorize")
                    .SetLogoutEndpointUris("auth/logout");
 
+            options.AcceptAnonymousClients();
             options.AllowAuthorizationCodeFlow()
                    .AllowRefreshTokenFlow()
                    .AllowPasswordFlow()

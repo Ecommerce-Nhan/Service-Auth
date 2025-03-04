@@ -138,7 +138,7 @@ public class AuthorizationController : ControllerBase
             var claimsIdentity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
             claimsIdentity.SetClaim(Claims.Subject, loginResponse.UserId)
-                          .SetClaim(Claims.Audience, request.ClientId)
+                          .SetClaim(Claims.Audience, loginResponse.UserId)
                           .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
                           .SetClaim(Claims.Name, request.Username)
                           .SetClaim(Claims.Role, loginResponse.UserRole);
