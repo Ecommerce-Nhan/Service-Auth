@@ -34,7 +34,7 @@ public class AuthorizationController : ControllerBase
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
-        var request = HttpContext.GetOpenIddictServerRequest() 
+        var request = HttpContext.GetOpenIddictServerRequest()
                       ?? throw new InvalidOperationException(ErrorConstants.OpenIDRequest);
 
         var claimsPrincipal = await CreateClaimsPrincipalAsync(request);
@@ -73,7 +73,7 @@ public class AuthorizationController : ControllerBase
                         ErrorDescription = Errors.AccessDenied
                     });
                 }
-               
+
                 var claimsPrincipal = authenticateResult.Principal;
 
                 return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -105,7 +105,7 @@ public class AuthorizationController : ControllerBase
                        });
     }
 
-    #region Private Methos 
+    #region Private Methos
 
     private static IEnumerable<string> GetDestinations(Claim claim)
     {
@@ -146,7 +146,6 @@ public class AuthorizationController : ControllerBase
             {
                 claimsIdentity.SetScopes(Scopes.OfflineAccess);
             }
-            claimsIdentity.SetClaim(Claims.Subject, request.ClientId);
             claimsIdentity.SetDestinations(GetDestinations);
 
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
