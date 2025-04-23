@@ -63,9 +63,9 @@ public static class ServiceCollectionExtensions
         })
         .AddServer(options =>
         {
-            options.SetTokenEndpointUris("auth/token")
-                   .SetAuthorizationEndpointUris("auth/authorize")
-                   .SetLogoutEndpointUris("auth/logout");
+            options.SetTokenEndpointUris("api/identity/token")
+                   .SetAuthorizationEndpointUris("api/identity/authorize")
+                   .SetLogoutEndpointUris("api/identity/logout");
 
             options.AcceptAnonymousClients();
             options.AllowAuthorizationCodeFlow()

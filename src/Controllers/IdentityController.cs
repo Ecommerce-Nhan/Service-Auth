@@ -14,13 +14,15 @@ using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace IdentityService.Controllers;
 
-public class AuthorizationController : ControllerBase
+[Route("api/[controller]/[action]")]
+[ApiController]
+public class IdentityController : ControllerBase
 {
     private readonly AuthOptions _authOptions;
     private readonly UserProtoServiceClient _userProtoServiceClient;
     private readonly IOpenIddictTokenManager _tokenManager;
 
-    public AuthorizationController(IOptions<AuthOptions> authOptions,
+    public IdentityController(IOptions<AuthOptions> authOptions,
                                    UserProtoServiceClient userProtoServiceClient,
                                    IOpenIddictTokenManager tokenManager)
     {
@@ -29,8 +31,8 @@ public class AuthorizationController : ControllerBase
         _tokenManager = tokenManager;
     }
 
-    [HttpGet("~/auth/authorize")]
-    [HttpPost("~/auth/authorize")]
+    [HttpGet]
+    [HttpPost]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize()
     {
@@ -42,10 +44,9 @@ public class AuthorizationController : ControllerBase
     }
 
     [HttpPost]
-    [Route("auth/token")]
     [Consumes("application/x-www-form-urlencoded")]
     [Produces("application/json")]
-    public async Task<IActionResult> ConnectToken()
+    public async Task<IActionResult> Token()
     {
         try
         {
@@ -94,7 +95,7 @@ public class AuthorizationController : ControllerBase
     }
 
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
-    [HttpPost("~/auth/logout")]
+    [HttpPost]
     public async Task<IActionResult> LogOut()
     {
         await HttpContext.SignOutAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
