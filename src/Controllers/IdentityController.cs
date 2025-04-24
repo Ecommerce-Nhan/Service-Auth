@@ -141,8 +141,13 @@ public class IdentityController : ControllerBase
             claimsIdentity.SetClaim(Claims.Subject, loginResponse.UserId)
                           .SetClaim(Claims.Audience, loginResponse.UserId)
                           .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
-                          .SetClaim(Claims.Name, request.Username)
-                          .SetClaim(Claims.Role, loginResponse.UserRole);
+                          .SetClaim(Claims.Name, request.Username);
+
+            foreach (var role in loginResponse.UserRole)
+            {
+                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
+            }
+
             if (!request.IsRefreshTokenGrantType())
             {
                 claimsIdentity.SetScopes(Scopes.OfflineAccess);
@@ -157,17 +162,6 @@ public class IdentityController : ControllerBase
             Console.WriteLine($"Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
             throw new Exception(ex.Message);
         }
-    }
-    private void SetRefreshTokenInCookie(string refreshToken)
-    {
-        var cookieOptions = new CookieOptions
-        {
-            HttpOnly = true,
-            Expires = DateTime.UtcNow.AddDays(10),
-            SameSite = SameSiteMode.Strict,
-            Secure = true
-        };
-        Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
     }
 
     #endregion Private Methods

@@ -13,7 +13,7 @@ message LoginRequest{
 }
 message LoginModel{
   string userId = 1;
-  string userRole = 2;
+  repeated string userRole = 2;
 }
 message GetUserByIdRequest{
   int32 userId = 1;
