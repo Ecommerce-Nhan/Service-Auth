@@ -50,10 +50,8 @@ public class TokenService : ITokenService
                           .SetClaim(Claims.Issuer, _authOptions.ServerIssuer)
                           .SetClaim(Claims.Name, request.Username);
 
-            foreach (var role in loginResponse.UserRole)
-            {
-                claimsIdentity.AddClaim(new Claim(ClaimTypes.Role, role));
-            }
+            claimsIdentity.AddClaim(ClaimTypes.Role, loginResponse.UserRole);
+            claimsIdentity.AddClaim("Permission", loginResponse.UserPermission);
 
             if (!request.IsRefreshTokenGrantType())
             {

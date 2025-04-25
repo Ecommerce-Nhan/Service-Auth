@@ -43,8 +43,8 @@ public class IdentityController : ControllerBase
         }
     }
 
-    [HttpGet("{token}")]
-    public async Task<IActionResult> Payload(string token)
+    [HttpPost]
+    public async Task<IActionResult> Payload([FromBody] string token)
     {
         try
         {
