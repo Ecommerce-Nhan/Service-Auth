@@ -1,7 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
+﻿using AuthService.Commons;
+using Microsoft.EntityFrameworkCore;
 using Quartz;
-using System.Text;
 using static gRPCServer.User.Protos.UserProtoService;
 
 namespace IdentityService.Extentions;
@@ -42,62 +41,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGrpcConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         var authOptions = configuration.GetSection(nameof(AuthOptions)).Get<AuthOptions>();
-        services.AddGrpcClient<UserProtoServiceClient>(s => 
+        services.AddGrpcClient<UserProtoServiceClient>(s =>
         s.Address = new Uri(authOptions?.UserServiceEndpoint ?? throw new Exception("Missing configure server")));
-
-        return services;
-    }
-
-    public static IServiceCollection AddCustomOpenIddict(this IServiceCollection services)
-    {
-        services.AddOpenIddict()
-        .AddCore(options =>
-        {
-            options.UseEntityFrameworkCore()
-                   .UseDbContext<AuthDbContext>();
-
-            options.UseQuartz()
-                   .SetMinimumAuthorizationLifespan(TimeSpan.FromDays(7))
-                   .SetMinimumTokenLifespan(TimeSpan.FromDays(1))
-                   .SetMaximumRefireCount(3);
-        })
-        .AddServer(options =>
-        {
-            options.SetTokenEndpointUris("api/identity/token")
-                   .SetAuthorizationEndpointUris("api/identity/authorize")
-                   .SetLogoutEndpointUris("api/identity/logout");
-
-            options.AcceptAnonymousClients();
-            options.AllowAuthorizationCodeFlow()
-                   .AllowRefreshTokenFlow()
-                   .AllowPasswordFlow()
-                   .UseReferenceRefreshTokens();
-
-            options.SetAccessTokenLifetime(TimeSpan.FromDays(1))
-                   .SetRefreshTokenLifetime(TimeSpan.FromDays(7));
-
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("IxrAjDoa2FqElO7IhrSrUJELhUckePEPVpaePlS_Xaw"));
-            var signingCert = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            options.AddSigningCredentials(signingCert);
-
-            options.AddEphemeralEncryptionKey()
-                   .AddEphemeralSigningKey()
-                   .DisableAccessTokenEncryption();
-
-            options.UseAspNetCore()
-                   .EnableLogoutEndpointPassthrough()
-                   .EnableTokenEndpointPassthrough()
-                   .EnableAuthorizationEndpointPassthrough()
-                   .DisableTransportSecurityRequirement();
-
-        })
-        .AddValidation(options =>
-        {
-            options.UseLocalServer();
-            options.UseAspNetCore();
-        });
-
-        services.AddHostedService<Worker>();
 
         return services;
     }

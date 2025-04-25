@@ -1,8 +1,8 @@
 ﻿using Serilog.Debugging;
 using Serilog;
-using Microsoft.AspNetCore.Authentication;
-using OpenIddict.Server.AspNetCore;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
+using AuthService.Extentions;
+using AuthService.Commons;
+using AuthService.Services.TokenService;
 
 namespace IdentityService.Extentions;
 
@@ -21,12 +21,13 @@ internal static class HostingExtensions
 
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
-        builder.Services.AddHttpClient();
 
+        builder.Services.AddScoped<ITokenService, TokenService>();
         builder.Services.AddOptionPattern();
-        builder.Services.AddCustomOpenIddict();
         builder.Services.AddCustomDbContext(builder.Configuration);
         builder.Services.AddGrpcConfiguration(builder.Configuration);
+        builder.Services.AddCustomOpenIddict();
+        builder.Services.AddHostedService<Worker>();
 
         return builder.Build();
     }
@@ -42,13 +43,8 @@ internal static class HostingExtensions
         {
             app.UseHttpsRedirection();
         }
-        app.UseExceptionHandler("/error");
         app.UseSerilogRequestLogging();
-        app.UseDeveloperExceptionPage();
         app.UseRouting();
-        app.UseAuthentication();
-        app.UseAuthorization();
-        app.UseCors();
         app.MapControllers();
 
         return app;
