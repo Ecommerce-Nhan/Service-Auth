@@ -44,17 +44,17 @@ public class IdentityController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Payload([FromBody] string token)
+    public async Task<IActionResult> Introspect()
     {
-        try
-        {
-            var payload = await _tokenService.GetPayload(token);
-            return Ok(payload);
-        }
-        catch (Exception ex)
-        {
-            return CreateBadRequestResponse(Errors.ServerError, ex.Message);
-        }
+
+        return Ok();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Revocation()
+    {
+
+        return Ok();
     }
 
     #region Private methods
@@ -83,6 +83,7 @@ public class IdentityController : ControllerBase
 
     private async Task<IActionResult> HandlePasswordGrantAsync(OpenIddictRequest request)
     {
+        request.Scope = Scopes.OfflineAccess;
         var claimsPrincipal = await _tokenService.CreateClaimsPrincipalAsync(request);
         return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }

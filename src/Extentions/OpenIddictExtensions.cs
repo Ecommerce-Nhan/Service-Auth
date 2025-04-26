@@ -1,5 +1,7 @@
-﻿using IdentityService;
+﻿using AuthService.ResponseHandler;
+using IdentityService;
 using Microsoft.IdentityModel.Tokens;
+using OpenIddict.Server;
 using System.Text;
 
 namespace AuthService.Extentions;
@@ -25,6 +27,14 @@ public static class OpenIddictExtensions
                 options.AcceptAnonymousClients();
                 options.TokenConfiguration();
                 options.SignatureConfiguration();
+
+                options.AddEventHandler<OpenIddictServerEvents.ApplyTokenResponseContext>(builder =>
+                {
+                    builder.UseScopedHandler<AuthServerApplyTokenResponse>()
+                    .SetType(OpenIddictServerHandlerType.Custom)
+                    .Build();
+                });
+                options.AddEventHandler(SignOutEventHandler.Descriptor);
             })
             .AddValidation(options =>
             {

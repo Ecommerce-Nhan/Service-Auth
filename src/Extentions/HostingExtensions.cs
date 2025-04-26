@@ -27,7 +27,7 @@ internal static class HostingExtensions
         builder.Services.AddCustomDbContext(builder.Configuration);
         builder.Services.AddGrpcConfiguration(builder.Configuration);
         builder.Services.AddCustomOpenIddict();
-        builder.Services.AddHostedService<Worker>();
+        //builder.Services.AddHostedService<Worker>();
 
         return builder.Build();
     }
