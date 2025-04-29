@@ -1,10 +1,10 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using AuthService.Helpers;
+using AuthService.Services.TokenService;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using AuthService.Helpers;
-using AuthService.Services.TokenService;
 using static IdentityService.Commons.Constants;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 

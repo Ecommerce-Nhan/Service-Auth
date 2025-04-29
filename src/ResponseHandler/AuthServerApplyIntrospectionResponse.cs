@@ -8,7 +8,7 @@ namespace AuthService.ResponseHandler;
 public class AuthServerApplyIntrospectionResponse(OpenIddictTokenManager<OpenIddictEntityFrameworkCoreToken> tokenManager)
            : IOpenIddictServerHandler<OpenIddictServerEvents.ApplyIntrospectionResponseContext>
 {
-    
+
     public async ValueTask HandleAsync(OpenIddictServerEvents.ApplyIntrospectionResponseContext context)
     {
         if (context.Request?.Token is not null)

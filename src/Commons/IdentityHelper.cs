@@ -1,5 +1,5 @@
-﻿using static OpenIddict.Abstractions.OpenIddictConstants;
-using System.Security.Claims;
+﻿using System.Security.Claims;
+using static OpenIddict.Abstractions.OpenIddictConstants;
 
 namespace AuthService.Helpers;
 

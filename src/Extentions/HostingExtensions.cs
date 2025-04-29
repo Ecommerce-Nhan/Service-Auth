@@ -1,8 +1,7 @@
-﻿using Serilog.Debugging;
-using Serilog;
-using AuthService.Extentions;
-using AuthService.Commons;
+﻿using AuthService.Extentions;
 using AuthService.Services.TokenService;
+using Serilog;
+using Serilog.Debugging;
 
 namespace IdentityService.Extentions;
 

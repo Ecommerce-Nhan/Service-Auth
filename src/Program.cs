@@ -1,5 +1,5 @@
-using Serilog;
 using IdentityService.Extentions;
+using Serilog;
 
 try
 {
