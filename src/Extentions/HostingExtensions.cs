@@ -1,19 +1,11 @@
 ﻿using AuthService.Extentions;
 using AuthService.Services.TokenService;
 using Serilog;
-using Serilog.Debugging;
 
 namespace IdentityService.Extentions;
 
 internal static class HostingExtensions
 {
-    public static void ConfigureSerilog(WebApplicationBuilder builder)
-    {
-        Log.Logger = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration).CreateLogger();
-        SelfLog.Enable(msg => Log.Information(msg));
-        Log.Information("Starting server.");
-    }
-
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Host.UseSerilog();
