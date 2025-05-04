@@ -1,12 +1,11 @@
-﻿using AuthService.Helpers;
-using AuthService.Services.TokenService;
+﻿using AuthService.Services.TokenService;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
-using static IdentityService.Commons.Constants;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static SharedLibrary.Constants.Identity.AuthConstants;
 
 namespace IdentityService.Controllers;
 
@@ -44,8 +43,9 @@ public class IdentityController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Introspect()
+    public async Task<IActionResult> Introspection()
     {
+        await Task.CompletedTask;
 
         return Ok();
     }
@@ -53,6 +53,7 @@ public class IdentityController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Revocation()
     {
+        await Task.CompletedTask;
 
         return Ok();
     }
@@ -73,7 +74,7 @@ public class IdentityController : ControllerBase
         var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
         if (result.Failure is not null)
-            return CreateBadRequestResponse(Errors.InvalidRequest, IdentityHelper.FormatException(result.Failure));
+            return CreateBadRequestResponse(Errors.InvalidRequest, FormatException(result.Failure));
 
         if (result.Principal is null)
             return CreateBadRequestResponse(Errors.InvalidClient, Errors.AccessDenied);
@@ -87,6 +88,9 @@ public class IdentityController : ControllerBase
         var claimsPrincipal = await _tokenService.CreateClaimsPrincipalAsync(request);
         return SignIn(claimsPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
+
+    private static string FormatException(Exception ex) =>
+        $"{ex.Message}{(ex.InnerException != null ? ": " + ex.InnerException.Message : string.Empty)}";
 
     #endregion Private methods
 }

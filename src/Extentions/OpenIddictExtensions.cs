@@ -48,7 +48,9 @@ public static class OpenIddictExtensions
 
     private static OpenIddictServerBuilder TokenConfiguration(this OpenIddictServerBuilder builder)
     {
-        builder.SetTokenEndpointUris("api/identity/token");
+        builder.SetTokenEndpointUris("api/identity/token")
+               .SetIntrospectionEndpointUris("api/identity/introspection")
+               .SetRevocationEndpointUris("api/identity/revocation");
 
         builder.AllowRefreshTokenFlow()
                .AllowPasswordFlow();

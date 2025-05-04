@@ -1,5 +1,4 @@
 ﻿using AuthService.Commons;
-using AuthService.Helpers;
 using Grpc.Core;
 using gRPCServer.User.Protos;
 using Microsoft.Extensions.Options;
@@ -57,7 +56,7 @@ public class TokenService : ITokenService
             {
                 claimsIdentity.SetScopes(Scopes.OfflineAccess);
             }
-            claimsIdentity.SetDestinations(IdentityHelper.GetDestinations);
+            claimsIdentity.SetDestinations(GetDestinations);
 
             var claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
 
@@ -68,5 +67,16 @@ public class TokenService : ITokenService
             Console.WriteLine($"Error: {ex.Status.StatusCode} - {ex.Status.Detail}");
             throw new Exception(ex.Message);
         }
+    }
+
+    private static IEnumerable<string> GetDestinations(Claim claim)
+    {
+        return claim.Type switch
+        {
+            Claims.Name or
+            Claims.Subject
+               => new[] { Destinations.AccessToken, Destinations.IdentityToken },
+            _ => new[] { Destinations.AccessToken },
+        };
     }
 }

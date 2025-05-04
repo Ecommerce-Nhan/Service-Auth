@@ -1,7 +1,7 @@
 ﻿using IdentityService;
 using OpenIddict.Abstractions;
-using static IdentityService.Commons.Constants;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static SharedLibrary.Constants.Identity.AuthConstants;
 
 namespace AuthService.Commons;
 
