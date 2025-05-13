@@ -2,6 +2,7 @@
 using OpenIddict.Core;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
+using SharedLibrary.Response.Identity;
 
 namespace AuthService.ResponseHandler;
 
@@ -24,6 +25,8 @@ public class AuthServerApplyTokenResponse
                     ExpirationDate: { }
                 } authServerToken) return;
 
+            context.Response.RemoveParameter("expires_in");
+            context.Response.RemoveParameter("token_type");
             context.Response.AddParameter("payload_token", new OpenIddictParameter(authServerToken.Payload));
         }
     }
