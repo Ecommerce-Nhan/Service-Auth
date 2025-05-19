@@ -30,10 +30,11 @@ internal static class HostingExtensions
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-        if (app.Environment.IsProduction())
+        else
         {
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
         }
+
         app.UseSerilogRequestLogging();
         app.UseRouting();
         app.MapControllers();

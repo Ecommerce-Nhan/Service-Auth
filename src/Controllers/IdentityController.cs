@@ -1,6 +1,7 @@
 ﻿using AuthService.Services.TokenService;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
@@ -40,22 +41,6 @@ public class IdentityController : ControllerBase
         {
             return CreateBadRequestResponse(Errors.ServerError, ex.Message);
         }
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Introspection()
-    {
-        await Task.CompletedTask;
-
-        return Ok();
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Revocation()
-    {
-        await Task.CompletedTask;
-
-        return Ok();
     }
 
     #region Private methods

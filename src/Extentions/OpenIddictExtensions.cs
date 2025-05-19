@@ -34,6 +34,12 @@ public static class OpenIddictExtensions
                     .SetType(OpenIddictServerHandlerType.Custom)
                     .Build();
                 });
+                options.AddEventHandler<OpenIddictServerEvents.ApplyIntrospectionResponseContext>(builder =>
+                {
+                    builder.UseScopedHandler<AuthServerApplyIntrospectionResponse>()
+                    .SetType(OpenIddictServerHandlerType.Custom)
+                    .Build();
+                });
                 options.AddEventHandler(SignOutEventHandler.Descriptor);
             })
             .AddValidation(options =>
@@ -75,7 +81,6 @@ public static class OpenIddictExtensions
                .DisableAccessTokenEncryption();
 
         builder.UseAspNetCore()
-               .EnableLogoutEndpointPassthrough()
                .EnableTokenEndpointPassthrough()
                .EnableAuthorizationEndpointPassthrough()
                .DisableTransportSecurityRequirement();
