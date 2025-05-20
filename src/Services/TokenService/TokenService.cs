@@ -2,9 +2,12 @@
 using Grpc.Core;
 using gRPCServer.User.Protos;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
 using static gRPCServer.User.Protos.UserProtoService;
 using static OpenIddict.Abstractions.OpenIddictConstants;
 
@@ -41,7 +44,13 @@ public class TokenService : ITokenService
                 Username = request.Username,
                 Password = request.Password
             };
-            var loginResponse = await _userProtoServiceClient.LoginAsync(loginRequest);
+            var accessToken = GenerateFakeInternalToken();
+
+            var headers = new Grpc.Core.Metadata
+            {
+                { "Authorization", $"Bearer {accessToken}" }
+            };
+            var loginResponse = await _userProtoServiceClient.LoginAsync(loginRequest, headers);
             var claimsIdentity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
 
             claimsIdentity.SetClaim(Claims.Subject, loginResponse.UserId)
@@ -77,5 +86,21 @@ public class TokenService : ITokenService
                => new[] { Destinations.AccessToken, Destinations.IdentityToken },
             _ => new[] { Destinations.AccessToken },
         };
+    }
+
+    private static string GenerateFakeInternalToken()
+    {
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("IxrAjDoa2FqElO7IhrSrUJELhUckePEPVpaePlS_Xaw"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: "internal",
+            audience: "userservice.api",
+            notBefore: DateTime.UtcNow,
+            expires: DateTime.UtcNow.AddYears(100),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
