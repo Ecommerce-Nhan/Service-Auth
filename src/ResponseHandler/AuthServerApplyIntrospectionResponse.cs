@@ -8,7 +8,6 @@ namespace AuthService.ResponseHandler;
 public class AuthServerApplyIntrospectionResponse(OpenIddictTokenManager<OpenIddictEntityFrameworkCoreToken> tokenManager)
            : IOpenIddictServerHandler<OpenIddictServerEvents.ApplyIntrospectionResponseContext>
 {
-
     public async ValueTask HandleAsync(OpenIddictServerEvents.ApplyIntrospectionResponseContext context)
     {
         if (context.Request?.Token is not null)
@@ -32,7 +31,14 @@ public class AuthServerApplyIntrospectionResponse(OpenIddictTokenManager<OpenIdd
                 }
             }
 
-            context.Response.AddParameter("payload_token", new OpenIddictParameter(authServerToken.Payload));
+            var active = context.Response.GetParameter("active");
+            if (active != null && active.Value == true)
+            {
+                context.Response.RemoveParameter("token_type");
+                context.Response.RemoveParameter("token_usage");
+                context.Response.RemoveParameter("jti");
+                context.Response.AddParameter("payload_token", new OpenIddictParameter(authServerToken.Payload));
+            }
         }
     }
 }
