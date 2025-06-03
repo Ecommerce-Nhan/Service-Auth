@@ -1,10 +1,11 @@
-using Serilog;
 using IdentityService.Extentions;
+using Orchestration.ServiceDefaults;
+using Serilog;
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    HostingExtensions.ConfigureSerilog(builder);
+    GeneralServiceExtensions.ConfigureSerilog(builder);
 
     var app = builder
         .ConfigureServices()

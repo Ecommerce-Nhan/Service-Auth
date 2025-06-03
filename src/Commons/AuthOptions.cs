@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace IdentityService;
+namespace AuthService.Commons;
 
 public class AuthOptions
 {

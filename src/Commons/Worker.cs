@@ -1,8 +1,9 @@
-﻿using OpenIddict.Abstractions;
-using static IdentityService.Commons.Constants;
+﻿using IdentityService;
+using OpenIddict.Abstractions;
 using static OpenIddict.Abstractions.OpenIddictConstants;
+using static SharedLibrary.Constants.Identity.AuthConstants;
 
-namespace IdentityService;
+namespace AuthService.Commons;
 
 public class Worker : IHostedService
 {
