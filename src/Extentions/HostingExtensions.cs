@@ -10,6 +10,7 @@ internal static class HostingExtensions
     {
         builder.Host.UseSerilog();
 
+        builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
 
