@@ -9,6 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Remove="Dockerfile" />
 		<None Remove="Protos\users.proto" />
 	</ItemGroup>
 
