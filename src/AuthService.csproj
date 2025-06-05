@@ -29,10 +29,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<!--<ProjectReference Include="..\..\Orchestration\Orchestration.ServiceDefaults\Orchestration.ServiceDefaults.csproj" />-->
-	</ItemGroup>
-
-	<ItemGroup>
 		<Protobuf Include="Protos\users.proto" GrpcServices="Client" />
 	</ItemGroup>
 </Project>
