@@ -82,8 +82,7 @@ public static class OpenIddictExtensions
 
         builder.UseAspNetCore()
                .EnableTokenEndpointPassthrough()
-               .EnableAuthorizationEndpointPassthrough()
-               .DisableTransportSecurityRequirement();
+               .EnableAuthorizationEndpointPassthrough();
 
         return builder;
     }

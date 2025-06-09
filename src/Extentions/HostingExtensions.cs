@@ -1,6 +1,5 @@
 ﻿using AuthService.Extentions;
 using AuthService.Services.TokenService;
-using Serilog;
 
 namespace IdentityService.Extentions;
 
@@ -8,8 +7,6 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
-        builder.Host.UseSerilog();
-
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddControllers();
         builder.Services.AddSwaggerGen();
@@ -31,13 +28,7 @@ internal static class HostingExtensions
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-        else
-        {
-            //app.UseHttpsRedirection();
-        }
-
-        app.UseSerilogRequestLogging();
-        app.UseRouting();
+        app.UseHttpsRedirection();
         app.MapControllers();
 
         return app;

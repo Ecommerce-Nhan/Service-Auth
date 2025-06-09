@@ -41,8 +41,7 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddGrpcConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
         var authOptions = configuration.GetSection(nameof(AuthOptions)).Get<AuthOptions>();
-        services.AddGrpcClient<UserProtoServiceClient>(s =>
-        s.Address = new Uri(authOptions?.UserServiceEndpoint ?? throw new Exception("Missing configure server")));
+        services.AddGrpcClient<UserProtoServiceClient>(s => s.Address = new Uri(authOptions.UserServiceEndpoint));
 
         return services;
     }

@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using static AuthService.Commons.Constants;
 using static OpenIddict.Abstractions.OpenIddictConstants;
-using static SharedLibrary.Constants.Identity.AuthConstants;
 
 namespace IdentityService.Controllers;
 

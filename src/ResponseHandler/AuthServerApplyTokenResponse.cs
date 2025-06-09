@@ -2,7 +2,6 @@
 using OpenIddict.Core;
 using OpenIddict.EntityFrameworkCore.Models;
 using OpenIddict.Server;
-using SharedLibrary.Response.Identity;
 
 namespace AuthService.ResponseHandler;
 
